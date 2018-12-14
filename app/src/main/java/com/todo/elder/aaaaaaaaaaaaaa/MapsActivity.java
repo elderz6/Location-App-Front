@@ -24,6 +24,8 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -35,6 +37,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Arrays;
@@ -99,46 +103,50 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         textView.setText(""+latitude+ "\n" +longitude);
                     }
                 });
-                LatLng userLocal = new LatLng(latitude, longitude);
-                mMap.clear();
-                mMap.addMarker(userMarker.position(userLocal).title("Your Position"));
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(userLocal));
-                mMap.moveCamera(CameraUpdateFactory.zoomBy(mMap.getMaxZoomLevel() - 7));
                 SendRequest(latitude, longitude);
             }
         });
     }
     public void getPosition(View view){
         String requestUrl = "http://192.168.137.1:3000/api/user";
-        StringRequest stringRequest = new StringRequest(Request.Method.GET,
-                requestUrl, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                System.out.println(response);
-                Random ran = new Random();
-                //convert response json to java usable data
-                String[] coordenadas = response.split(":");
-                JSONObject stuff = new JSONObject();
-                LatLng friendsLocal = new LatLng(Double.parseDouble(coordenadas[0]),
-                        Double.parseDouble(coordenadas[1]));
-                mMap.addMarker(new MarkerOptions().position(friendsLocal)
-                        .title("Friend position")
-                        .icon(BitmapDescriptorFactory.defaultMarker(ran.nextInt(350)+ 1)));
-                final TextView tv = findViewById(R.id.textView3);
-                runOnUiThread(new Runnable() {
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET,
+                requestUrl,
+                null,
+                new Response.Listener<JSONArray>() {
                     @Override
-                    public void run() {
-                        tv.setText("response");
-                    }
-                });
-            }}, new Response.ErrorListener() {
+                    public void onResponse(JSONArray response) {
+                        System.out.println(response);
+                        mMap.clear();
+                        try {
+                            Random random = new Random();
+                            for (int i = 0; i<response.length(); i++){
+                                JSONObject positions = response.getJSONObject(i);
+                                String name = positions.getString("name");
+                                double latitude = positions.getDouble("latitude");
+                                double longitude = positions.getDouble("longitude");
+                                System.out.println(name+", "+latitude+", "+longitude);
+                                LatLng userLocal = new LatLng(latitude, longitude);
+                                mMap.addMarker(userMarker.position(userLocal)
+                                        .title(name)
+                                        .icon(BitmapDescriptorFactory.defaultMarker(random.nextInt(350)+ 1))
+                                );
+                                mMap.moveCamera(CameraUpdateFactory.newLatLng(userLocal));
+                                mMap.moveCamera(CameraUpdateFactory.newLatLng(userLocal));
+                                mMap.moveCamera(CameraUpdateFactory.zoomBy(mMap.getMaxZoomLevel() - 7));
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }},
+                new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                System.out.println(error);
+                error.printStackTrace();
             }
         });
-        RequestQueue queue = Volley.newRequestQueue(this);
-        queue.add(stringRequest);
+        queue.add(request);
     }
     public void SendRequest(final double latitude, final double longitude){
         String requestUrl = "http://192.168.137.1:3000/api/user";
@@ -159,7 +167,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Map<String, String> postMap = new HashMap<>();
                 postMap.put("latitude", ""+latitude);
                 postMap.put("longitude", ""+longitude);
-                postMap.put("name", "tester1");
+                postMap.put("name", "joaozin");
                 return postMap;
             }
         };
