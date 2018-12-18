@@ -50,7 +50,6 @@ import java.util.Random;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private TextView textView;
     private LocationManager location;
     private LocationListener listener;
     private Button button;
@@ -62,7 +61,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        textView = findViewById(R.id.textView2);
         button = findViewById(R.id.locBtn);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -97,19 +95,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 System.out.println("------------------------------------------------------------------------");
                 final double latitude = location.getLastKnownLocation(locationProvider).getLatitude();
                 final double longitude = location.getLastKnownLocation(locationProvider).getLongitude();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        textView.setText(""+latitude+ "\n" +longitude);
-                    }
-                });
                 SendRequest(latitude, longitude);
             }
         });
     }
     public void getPosition(View view){
-        String requestUrl = "http://192.168.137.1:3000/api/user";
-
+        String requestUrl = "http://192.168.137.1:3000/api/user/"+getIntent().getExtras().getString("_id");
         RequestQueue queue = Volley.newRequestQueue(this);
         JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET,
                 requestUrl,
@@ -123,6 +114,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             Random random = new Random();
                             for (int i = 0; i<response.length(); i++){
                                 JSONObject positions = response.getJSONObject(i);
+                                System.out.println("positions --------------------"+positions);
                                 String name = positions.getString("name");
                                 double latitude = positions.getDouble("latitude");
                                 double longitude = positions.getDouble("longitude");
@@ -165,9 +157,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> postMap = new HashMap<>();
+                postMap.put("id", getIntent().getExtras().getString("_id"));
                 postMap.put("latitude", ""+latitude);
                 postMap.put("longitude", ""+longitude);
-                postMap.put("name", "joaozin");
+                postMap.put("name", getIntent().getExtras().getString("username"));
                 return postMap;
             }
         };
@@ -176,7 +169,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         queue.add(stringRequest);
     }
     public void BackAct(View view){
-        super.finish();
+
     }
 
     @Override

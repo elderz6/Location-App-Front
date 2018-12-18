@@ -34,6 +34,7 @@
             android:value="@string/google_maps_key" />
 
         <activity
+            android:configChanges="orientation|screenSize"
             android:name=".MainActivity"
             android:label="@string/title_activity_maps">
             <intent-filter>
@@ -42,7 +43,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MapsActivity"></activity>
+        <activity
+            android:configChanges="orientation|screenSize"
+            android:name=".MapsActivity"></activity>
     </application>
 
 </manifest>
