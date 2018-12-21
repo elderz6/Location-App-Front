@@ -160,7 +160,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 postMap.put("id", getIntent().getExtras().getString("_id"));
                 postMap.put("latitude", ""+latitude);
                 postMap.put("longitude", ""+longitude);
-                postMap.put("name", getIntent().getExtras().getString("username"));
+                postMap.put("name", getIntent().getExtras().getString("name"));
                 return postMap;
             }
         };
@@ -169,7 +169,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         queue.add(stringRequest);
     }
     public void BackAct(View view){
-
+        finish();
     }
 
     @Override
